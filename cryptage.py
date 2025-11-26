@@ -1,6 +1,8 @@
 # https://www.apprendre-en-ligne.net/crypto/rsa/index.html <-- GROSSE inspiration du code d'encryptage trouvé sur se site
 # https://cahier-de-prepa.fr/pc-wallon/download?id=234 <-- Pour mieux comprendre comment fonctionne le cryptage RSA
 
+import random
+from sympy import isprime  # Librairie autorisée
 
 def pgdc(a, b):
     # plus grand diviseur commun de a et b
@@ -40,30 +42,19 @@ def euclide(b, n):
 def crypter(message):
     # crypte un nombre
     global e, n
-    e1 = e
-    texte_crypte = 1
-    while e1 > 0:
-        texte_crypte *= message
-        texte_crypte %= n
-        e1 -= 1
-    return texte_crypte
+    # utilisation de pow avec aide de cette video https://www.youtube.com/watch?v=MMQphbVOTNU&t=3s
+    return pow(message, e, n)
 
 
 def decrypter(texte_crypte):
     # decrypte un nombre
     global d, n
-    d1 = d
-    decrypte = 1
-    while d1 > 0:
-        decrypte *= texte_crypte
-        decrypte %= n
-        d1 -= 1
-    return decrypte
+    return pow(texte_crypte, d, n)
 
 
 def chiffrer(message, bloc):
     # convertit chaque caractere dans son code ASCII avant de le chiffrer par groupe de "bloc" chiffres
-    if 10**bloc > n:
+    if 10 ** bloc > n:
         print("blocs trop grands par rapport à n")
     liste = []
     chiffres = ""
@@ -73,7 +64,7 @@ def chiffrer(message, bloc):
             chiffres += "0"
         if ascii < 100:
             chiffres += "0"
-        chiffres += str(ascii)    # chiffres a toujours une longueur de 3 (code acsii etendu)
+        chiffres += str(ascii)  # chiffres a toujours une longueur de 3 (code acsii etendu)
     while len(chiffres) % bloc != 0:
         chiffres = "0" + chiffres
     for paquet in range(len(chiffres) // bloc):
@@ -94,42 +85,51 @@ def dechiffrer(encode, bloc):
             str_nombre = "0" + str_nombre
         chiffres += str_nombre
     while len(chiffres) % 3 != 0:
-        chiffres = chiffres[1:]    # enleve des 0 au debut de chiffres
+        chiffres = chiffres[1:]  # enleve des 0 au debut de chiffres
     for paquet in range(len(chiffres) // 3):
         nombre = int(chiffres[3 * paquet:3 * paquet + 3])
         if nombre > 0:
             s += chr(nombre)
     return s
 
-# ------------------  programme principal ------------------------------
+def generer_cles_automatiquement():
+    """
+    fonction qui génère un p et un q premier aléatoire
+    fait avec l'aide de https://www.educative.io/answers/what-is-the-sympyisprime-method-in-python
+    et https://www.ionos.fr/digitalguide/sites-internet/developpement-web/python-randint/
+    et https://www.etudestech.com/decryptage/algorithme-deuclide/
+    """
+    p = 0
+    q = 0
+
+    while not isprime(p):
+        p = random.randint(100, 500)
+
+    while not isprime(q) or q == p:
+        q = random.randint(100, 500)
+
+    n_val = p * q
+    phi = (p - 1) * (q - 1)
+
+    e_val = random.randint(3, phi - 1)
+    while pgdc(e_val, phi) != 1:
+        e_val = random.randint(3, phi - 1)
+
+    d_val = euclide(e_val, phi)
+
+    return (n_val, e_val), (n_val, d_val)
 
 bloc = 4
-# clef publique
-p = 197      # p et q sont des nombres premiers
-q = 241
-n = p * q
-e = 200
-phi = (p - 1) * (q - 1)   # indicatrice d'Euler
-while (e < phi):
-    # e et phi doivent etre premiers entre eux et e < phi
-    if (pgdc(e, phi) == 1):
-        break
-    else:
-        e += 1
-print("clef publique : n =", n, ", e =", e)
+cle_pub, cle_priv = generer_cles_automatiquement()
+n, e = cle_pub
+_, d = cle_priv
 
-# clef privee d
-# d*e = 1 mod phi
-d = euclide(e, phi)
-print("clef privée   : n =", n, ", d =", d)
+print("cle_pub : n =", n, ", e =", e)
+print("cle_priv : n =", n, ", d =", d)
 
-message = "prout"
-print("\nMessage clair :")
-print(message)
 
-print("\nMessage chiffré :")
-code = chiffrer(message, bloc)   # liste des blocs
-print(' '.join(str(p) for p in code))
-
-print("\nMessage déchiffré :")
-print(''.join(str(p) for p in dechiffrer(code, bloc)))
+message = "message"
+print("\nMessage clair :", message)
+code = chiffrer(message, bloc) # liste des blocs
+print("Message chiffré :",''.join(str(p) for p in code))
+print("Message déchiffré :",''.join(str(p) for p in dechiffrer(code, bloc)))
