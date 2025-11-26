@@ -119,17 +119,17 @@ def generer_cles_automatiquement():
 
     return (n_val, e_val), (n_val, d_val)
 
-bloc = 4
-cle_pub, cle_priv = generer_cles_automatiquement()
-n, e = cle_pub
-_, d = cle_priv
+if __name__ == "__main__":
+    bloc = 4
+    cle_pub, cle_priv = generer_cles_automatiquement()
+    n, e = cle_pub
+    _, d = cle_priv
 
-print("cle_pub : n =", n, ", e =", e)
-print("cle_priv : n =", n, ", d =", d)
+    print("cle_pub : n =", n, ", e =", e)
+    print("cle_priv : n =", n, ", d =", d)
 
-
-message = "message"
-print("\nMessage clair :", message)
-code = chiffrer(message, bloc) # liste des blocs
-print("Message chiffré :",''.join(str(p) for p in code))
-print("Message déchiffré :",''.join(str(p) for p in dechiffrer(code, bloc)))
+    message = "message"
+    print("\nMessage clair :", message)
+    code = chiffrer(message, bloc) # liste des blocs
+    print("Message chiffré :",''.join(str(p) for p in code))
+    print("Message déchiffré :",''.join(str(p) for p in dechiffrer(code, bloc)))
