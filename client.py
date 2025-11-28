@@ -1,16 +1,39 @@
+#GROSSE inspiration du code trouvé a https://www.datacamp.com/fr/tutorial/a-complete-guide-to-socket-programming-in-python
+
 import socket
 
-def send_to_router(first_ip, first_port, next_ip, next_port, message):
-    packet = f"{next_ip}:{next_port}:{message}"
 
-    s = socket.socket()
-    s.connect((first_ip, first_port))
-    s.send(packet.encode())
-    s.close()
+def run_client():
+    # create a socket object
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-if __name__ == "__main__":
-    send_to_router(
-        first_ip="127.0.0.1", first_port=15001,
-        next_ip="127.0.0.1", next_port=15002,
-        message="HELLO FROM CLIENT"
-    )
+    server_ip = "127.0.0.1"  # replace with the server's IP address
+    server_port = 8000  # replace with the server's port number
+    # establish connection with server
+    client.connect((server_ip, server_port))
+
+    try:
+        while True:
+            # get input message from user and send it to the server
+            msg = input("Enter message: ")
+            client.send(msg.encode("utf-8")[:1024])
+
+            # receive message from the server
+            response = client.recv(1024)
+            response = response.decode("utf-8")
+
+            # if server sent us "closed" in the payload, we break out of
+            # the loop and close our socket
+            if response.lower() == "closed":
+                break
+
+            print(f"Received: {response}")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        # close client socket (connection to the server)
+        client.close()
+        print("Connection to server closed")
+
+
+run_client()
