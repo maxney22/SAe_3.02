@@ -2,7 +2,7 @@
 # https://cahier-de-prepa.fr/pc-wallon/download?id=234 <-- Pour mieux comprendre comment fonctionne le cryptage RSA
 
 import random
-from sympy import isprime  # Librairie autorisée
+from sympy import isprime
 
 def pgdc(a, b):
     # plus grand diviseur commun de a et b
