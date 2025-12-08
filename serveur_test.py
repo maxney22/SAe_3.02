@@ -1,51 +1,30 @@
-#GROSSE inspiration du code trouvé a https://www.datacamp.com/fr/tutorial/a-complete-guide-to-socket-programming-in-python
-
 import socket
 import threading
 
+def handle_client(client_socket):
+    while True:
+        data = client_socket.recv(1024)
+        if not data:
+            break
+        message = data.decode('utf-8')
+        print(f"Received message: {message}")
+        response = "Server received your message: " + message
+        client_socket.sendall(response.encode('utf-8'))
+    client_socket.close()
 
-def handle_client(client_socket, addr):
-    try:
-        while True:
-            # receive and print client messages
-            request = client_socket.recv(1024).decode("utf-8")
-            if request.lower() == "close":
-                client_socket.send("closed".encode("utf-8"))
-                break
-            print(f"Received: {request}")
-            # convert and send accept response to the client
-            response = "accepted"
-            client_socket.send(response.encode("utf-8"))
-    except Exception as e:
-        print(f"Error when hanlding client: {e}")
-    finally:
-        client_socket.close()
-        print(f"Connection to client ({addr[0]}:{addr[1]}) closed")
+def main():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    host = '127.0.0.1'
+    port = 12345
+    server_socket.bind((host, port))
+    server_socket.listen(5)
+    print(f"Server listening on {host}:{port}")
 
+    while True:
+        client_socket, client_address = server_socket.accept()
+        print(f"Accepted connection from {client_address}")
+        client_handler = threading.Thread(target=handle_client, args=(client_socket,))
+        client_handler.start()
 
-def run_server():
-    server_ip = "127.0.0.1"  # server hostname or IP address
-    port = 8000  # server port number
-    # create a socket object
-    try:
-        server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # bind the socket to the host and port
-        server.bind((server_ip, port))
-        # listen for incoming connections
-        server.listen()
-        print(f"Listening on {server_ip}:{port}")
-
-        while True:
-            # accept a client connection
-            client_socket, addr = server.accept()
-            print(f"Accepted connection from {addr[0]}:{addr[1]}")
-            # start a new thread to handle the client
-            thread = threading.Thread(target=handle_client, args=(client_socket, addr,))
-            thread.start()
-    except Exception as e:
-        print(f"Error: {e}")
-    finally:
-        server.close()
-
-
-run_server()
+if __name__ == "__main__":
+    main()
