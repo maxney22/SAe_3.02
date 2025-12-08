@@ -1,6 +1,6 @@
 import socket
 import threading
-from importlib.resources import contents
+
 
 id = input("Nom du routeur : ")
 listen_port = int(input("Port du routeur : "))
@@ -32,3 +32,4 @@ def listen():
 
 
 listen()
+
