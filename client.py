@@ -1,19 +1,30 @@
+#inspiré du code trouvé ici : https://github.com/joeVenner/Python-Chat-Gui-App.git
+
 import socket
+import threading
 
+nickname = input("Choisis ton pseudo : ")
 
-def main():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    host = '127.0.0.1'
-    port = 12345
-    client_socket.connect((host, port))
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect(('127.0.0.1', 55555))
 
+def receive():
     while True:
-        message = input("Enter your message: ")
-        client_socket.sendall(message.encode('utf-8'))
-        data = client_socket.recv(1024)
-        response = data.decode('utf-8')
-        print(f"Server response: {response}")
+            message = client.recv(1024).decode('utf-8')
+            if message == 'NICK':
+                client.send(nickname.encode('utf-8'))
+            else:
+                print(message)
 
 
-if __name__ == "__main__":
-    main()
+def write():
+    while True:
+            text = input("")
+            message = f'{nickname}: {text}'
+            client.send(message.encode('utf-8'))
+
+
+receive_thread = threading.Thread(target=receive)
+receive_thread.start()
+write_thread = threading.Thread(target=write)
+write_thread.start()
