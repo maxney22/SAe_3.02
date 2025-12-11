@@ -39,20 +39,19 @@ def euclide(b, n):
         return t
 
 
-def crypter(message):
+def crypter(message, n, e):
     # crypte un nombre
-    global e, n
     # utilisation de pow avec aide de cette video https://www.youtube.com/watch?v=MMQphbVOTNU&t=3s
     return pow(message, e, n)
 
 
-def decrypter(texte_crypte):
+def decrypter(texte_crypte, n, d):
     # decrypte un nombre
-    global d, n
     return pow(texte_crypte, d, n)
 
 
-def chiffrer(message, bloc):
+def chiffrer(message, cle_publique, bloc):
+    n, e = cle_publique
     # convertit chaque caractere dans son code ASCII avant de le chiffrer par groupe de "bloc" chiffres
     if 10 ** bloc > n:
         print("blocs trop grands par rapport à n")
@@ -60,25 +59,26 @@ def chiffrer(message, bloc):
     chiffres = ""
     for lettre in message:
         ascii = ord(lettre)
-        if ascii < 10:
-            chiffres += "0"
-        if ascii < 100:
-            chiffres += "0"
-        chiffres += str(ascii)  # chiffres a toujours une longueur de 3 (code acsii etendu)
+        # Petite adaptation ici pour assurer que le formatage reste compatible avec le reseau
+        str_ascii = str(ascii)
+        while len(str_ascii) < 3:
+            str_ascii = "0" + str_ascii
+        chiffres += str_ascii  # chiffres a toujours une longueur de 3 (code acsii etendu)
     while len(chiffres) % bloc != 0:
         chiffres = "0" + chiffres
     for paquet in range(len(chiffres) // bloc):
         nombre = int(chiffres[bloc * paquet:bloc * paquet + bloc])
-        liste.append(crypter(nombre))
+        liste.append(crypter(nombre, n, e))
     return liste
 
 
-def dechiffrer(encode, bloc):
+def dechiffrer(encode, cle_privee, bloc):
+    n, d = cle_privee
     liste = []
     chiffres = ""
     s = ''
     for num in encode:
-        liste.append(decrypter(num))
+        liste.append(decrypter(num, n, d))
     for nombre in liste:
         str_nombre = str(nombre)
         while len(str_nombre) < bloc:
@@ -87,9 +87,11 @@ def dechiffrer(encode, bloc):
     while len(chiffres) % 3 != 0:
         chiffres = chiffres[1:]  # enleve des 0 au debut de chiffres
     for paquet in range(len(chiffres) // 3):
-        nombre = int(chiffres[3 * paquet:3 * paquet + 3])
-        if nombre > 0:
-            s += chr(nombre)
+        try:
+            nombre = int(chiffres[3 * paquet:3 * paquet + 3])
+            if nombre > 0:
+                s += chr(nombre)
+        except: pass
     return s
 
 def generer_cles_automatiquement():
@@ -118,18 +120,3 @@ def generer_cles_automatiquement():
     d_val = euclide(e_val, phi)
 
     return (n_val, e_val), (n_val, d_val)
-
-if __name__ == "__main__":
-    bloc = 4
-    cle_pub, cle_priv = generer_cles_automatiquement()
-    n, e = cle_pub
-    _, d = cle_priv
-
-    print("cle_pub : n =", n, ", e =", e)
-    print("cle_priv : n =", n, ", d =", d)
-
-    message = "message"
-    print("\nMessage clair :", message)
-    code = chiffrer(message, bloc) # liste des blocs
-    print("Message chiffré :",''.join(str(p) for p in code))
-    print("Message déchiffré :",''.join(str(p) for p in dechiffrer(code, bloc)))
