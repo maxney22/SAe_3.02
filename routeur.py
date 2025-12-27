@@ -10,7 +10,7 @@ if len(sys.argv) < 3:
 
 master_ip = sys.argv[1]
 master_port = int(sys.argv[2])
-BLOC_TAILLE = 3
+BLOC_TAILLE = 3 # variable pour cryptage
 port = 0
 
 
@@ -26,9 +26,8 @@ def adresse_ip():
 
 
 def ping():
-    """Envoie un PING au master toutes les 10 secondes"""
     while True:
-        time.sleep(10)
+        time.sleep(2)
         if port != 0:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,38 +59,68 @@ def enregistrement():
 
 
 def routage(conn, priv):
+    # merci root me pro
     try:
-        data = conn.recv(16384).decode('utf-8')
-        if not data: return
+        gros_paquet = b""  # créer une variable en format bytes
+        while True:
+            paquet = conn.recv(4096)
+            if not paquet:
+                break
+            gros_paquet += paquet
 
-        clean_data = "".join([c for c in data if c.isdigit() or c in ['_', ',']])
-        if "_" in clean_data:
-            parts = clean_data.split('_')
+        paquet_texte = gros_paquet.decode('utf-8')
+        if not paquet_texte: return
+
+        paquet_filtre = ""
+        for c in paquet_texte:
+            # vérfie si dans le paquet il n'y a QUE soit des nombres ou des _ ou des ,
+            if c.isdigit() or c == '_' or c == ',': # https://www.w3schools.com/python/ref_string_isdigit.asp
+                paquet_filtre = paquet_filtre + c
+
+        if "_" in paquet_filtre:
+            liste_morceau = paquet_filtre.split('_')
         else:
-            parts = clean_data.split(',')
-        cipher_ints = [int(p) for p in parts if p]
+            liste_morceau = paquet_filtre.split(',')
 
-        decrypted = cryptage.dechiffrer(cipher_ints, priv, BLOC_TAILLE)
-        if "|" not in decrypted: return
-        hop, payload = decrypted.split('|', 1)
+        conversion_paquet_int = []
 
-        if hop == "FINAL":
-            dest_ip, dest_port, msg = payload.split(':', 2)
-            print(f"[LIVRAISON] -> {dest_ip}:{dest_port}")
-            out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            out.connect((dest_ip, int(dest_port)))
-            out.send(bytes(msg, 'utf-8'))
-            out.close()
+        for morceau in liste_morceau:
+            if len(morceau) > 0:
+                nombre = int(morceau)
+                conversion_paquet_int.append(nombre)
+
+        message_dechiffre = cryptage.dechiffrer(conversion_paquet_int, priv, BLOC_TAILLE)
+        if "|" not in message_dechiffre: return
+        morceaux_message = message_dechiffre.split('|',1)
+        if len(morceaux_message) != 2:
+            return
+
+        prochain_saut = morceaux_message[0]
+        contenu_message = morceaux_message[1]
+
+        if prochain_saut == "FINAL":
+            info_destination = contenu_message.split(':',2)
+            if len(info_destination) == 3:
+                ip_destinataire = info_destination[0]
+                port_destinataire = int(info_destination[1])
+                message_final = info_destination[2]
+                print(f"envoie destinataire -> {ip_destinataire}:{port_destinataire}")
+                socket_envoi = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                socket_envoi.connect((ip_destinataire, port_destinataire))
+                socket_envoi.send(bytes(message_final, 'utf-8'))
+                socket_envoi.close()
         else:
-            next_ip, next_port = hop.split(':')
-            print(f"[RELAI] -> {next_ip}:{next_port}")
-            out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            out.connect((next_ip, int(next_port)))
-            out.send(bytes(payload, 'utf-8'))
-            out.close()
+            info_prochain_saut = prochain_saut.split(':')
+            ip_prochain_saut = info_prochain_saut[0]
+            port_prochain_saut = int(info_prochain_saut[1])
+            print(f"prochain saut -> {ip_prochain_saut}:{port_prochain_saut}")
+            socket_envoi = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            socket_envoi.connect((ip_prochain_saut, port_prochain_saut))
+            socket_envoi.send(bytes(contenu_message, 'utf-8'))
+            socket_envoi.close()
 
     except Exception as e:
-        print(f"[ERREUR ROUTAGE] {e}")
+        print(f"erreur de routage {e}")
     finally:
         conn.close()
 
