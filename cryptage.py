@@ -1,5 +1,7 @@
-# https://www.apprendre-en-ligne.net/crypto/rsa/index.html <-- GROSSE inspiration du code d'encryptage trouvé sur se site
-# https://cahier-de-prepa.fr/pc-wallon/download?id=234 <-- Pour mieux comprendre comment fonctionne le cryptage RSA
+"""
+https://www.apprendre-en-ligne.net/crypto/rsa/index.html <-- GROSSE inspiration du code d'encryptage trouvé sur se site
+https://cahier-de-prepa.fr/pc-wallon/download?id=234 <-- Pour mieux comprendre comment fonctionne le cryptage RSA
+"""
 
 import random
 from sympy import isprime
