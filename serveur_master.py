@@ -350,3 +350,4 @@ if __name__ == "__main__":
     fen_config = FenetreConfig()
     fen_config.show()
     sys.exit(app.exec())
+  
