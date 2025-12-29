@@ -50,7 +50,7 @@ def enregistrement():
     try:
         s_reg = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s_reg.connect((master_ip, master_port))
-        msg = f"REG|ROUTER|{port}|{pub[0]}|{pub[1]}"
+        msg = f"ENRE|ROUTER|{port}|{pub[0]}|{pub[1]}"
         s_reg.send(bytes(msg, 'utf-8'))
         s_reg.close()
         return s, priv
