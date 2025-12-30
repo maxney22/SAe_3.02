@@ -137,30 +137,30 @@ class FenetreConnexion(QWidget):
         self.resize(300, 200)
 
         layout = QVBoxLayout()
-        self.input_ip = QLineEdit("")
-        self.input_ip.setPlaceholderText("Ex: 192.168.x.x ou localhost")
-        self.input_port = QLineEdit("")
-        self.input_port.setPlaceholderText("Ex: 20000")
-        self.input_pseudo = QLineEdit("")
-        self.input_pseudo.setPlaceholderText("John Doe")
-        self.btn_co = QPushButton("Se Connecter")
-        self.btn_co.clicked.connect(self.connecter)
+        self.ip_master = QLineEdit("")
+        self.ip_master.setPlaceholderText("Ex: 192.168.x.x ou localhost")
+        self.port_master = QLineEdit("")
+        self.port_master.setPlaceholderText("Ex: 20000")
+        self.zone_pseudo = QLineEdit("")
+        self.zone_pseudo.setPlaceholderText("John Doe")
+        self.bouton_connecter = QPushButton("Se Connecter")
+        self.bouton_connecter.clicked.connect(self.connecter)
 
         layout.addWidget(QLabel("IP Master:"))
-        layout.addWidget(self.input_ip)
+        layout.addWidget(self.ip_master)
         layout.addWidget(QLabel("Port Master:"))
-        layout.addWidget(self.input_port)
+        layout.addWidget(self.port_master)
         layout.addWidget(QLabel("Pseudo :"))
-        layout.addWidget(self.input_pseudo)
-        layout.addWidget(self.btn_co)
+        layout.addWidget(self.zone_pseudo)
+        layout.addWidget(self.bouton_connecter)
 
         self.setLayout(layout)
 
     def connecter(self):
         global master_ip, master_port
-        pseudo = self.input_pseudo.text()
+        pseudo = self.zone_pseudo.text()
 
-        if not pseudo or not self.input_ip.text() or not self.input_port.text():
+        if not pseudo or not self.ip_master.text() or not self.port_master.text():
             QMessageBox.warning(self, "Erreur champs", "Veuillez remplir IP Port et Pseudo")
             return
 
@@ -171,10 +171,10 @@ class FenetreConnexion(QWidget):
                 QMessageBox.warning(self,"Attention",f"les caractères {caracteres_interdits} sont interdits""")
                 return
 
-        master_ip = self.input_ip.text()
+        master_ip = self.ip_master.text()
 
         try:
-            master_port = int(self.input_port.text())
+            master_port = int(self.port_master.text())
         except ValueError:
             QMessageBox.critical(self, "Erreur", "Le port doit être un nombre")
             return
