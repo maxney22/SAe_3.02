@@ -319,7 +319,7 @@ class FenetreMessagerie(QWidget):
         else:
             maximum_saut = 5
 
-        nombre_routeur_final = random.randint(1, maximum_saut)
+        nombre_routeur_final = maximum_saut
         route = random.sample(liste_routeur, nombre_routeur_final)
 
         nom_des_routeur = []
@@ -355,3 +355,4 @@ if __name__ == "__main__":
     fenetre_graphique = FenetreConnexion()
     fenetre_graphique.show()
     sys.exit(client.exec())
+
